@@ -534,7 +534,7 @@ images:[
 
 let cart = [];
 
-let visibleProducts = 4;
+let visibleProducts = 8;
 
 let currentProducts = [...products];
 
@@ -706,34 +706,24 @@ function closePopup(){
 document.getElementById("popup").style.display = "none";
 
 }
-
 function addToCart(name, price, id){
 
 let existing = cart.find(item => item.id === id);
 
 if(existing){
-
 existing.qty += 1;
-
 }else{
-
 cart.push({
-id: id,
-name: name,
-price: price,
-qty: 1
+id:id,
+name:name,
+price:price,
+qty:1
 });
-
-}
-
-// ❌ SMS/alert শুধু FIRST time add হলে যাবে
-if(!existing){
-alert(name + " Added To Cart");
 }
 
 updateCart();
-
 }
+
 
 function updateCart(){
 
@@ -741,10 +731,12 @@ let cartItems = document.getElementById("cartItems");
 cartItems.innerHTML = "";
 
 let total = 0;
+let totalQty = 0;
 
 cart.forEach(item => {
 
 total += item.price * item.qty;
+totalQty += item.qty;
 
 cartItems.innerHTML += `
 <div class="cart-item">
@@ -755,20 +747,30 @@ ${item.name}<br>
 </div>
 
 <div>
-
-<button onclick="removeItem(${item.id})">
-❌
-</button>
-
+<button onclick="removeItem(${item.id})">❌</button>
 </div>
 
 </div>
 `;
-
 });
 
 document.getElementById("total").innerText = total;
-document.getElementById("cartCount").innerText = cart.length;
+document.getElementById("cartCount").innerText = totalQty;
+}
+
+function getDeliveryCharge(){
+
+let delivery = document.querySelector(
+'input[name="delivery"]:checked'
+);
+
+if(!delivery) return 0;
+
+if(delivery.value.includes("60")){
+return 60;
+}else{
+return 100;
+}
 
 }
 
@@ -808,36 +810,31 @@ document.getElementById("color").value;
 let address =
 document.getElementById("address").value;
 
-let total = 0;
+let selectedDelivery =
+document.querySelector(
+'input[name="delivery"]:checked'
+);
 
-let orderList = "";
+let delivery = "Dhaka City - 60 TK";
 
-cart.forEach((item,i)=>{
+if(selectedDelivery){
 
-total += item.price;
-
-orderList += `
-${i+1}. ${item.name}
-৳${item.price}
-
-`;
-
-});
-
-if(cart.length===0){
-
-orderList = `
-${currentProduct.name}
-৳${currentProduct.price}
-`;
-
-total = currentProduct.price;
+delivery = selectedDelivery.value;
 
 }
 
+let deliveryCharge = 60;
+
+if(delivery.includes("100")){
+deliveryCharge = 100;
+}
+
+let total =
+currentProduct.price + deliveryCharge;
+
 let msg = `
 
-🛒 NEW ORDER
+🛒 MRST Fashion Order
 
 👤 Name: ${name}
 
@@ -855,13 +852,17 @@ let msg = `
 
 🎨 Color: ${color}
 
+🚚 Delivery: ${delivery}
+
+💵 Delivery Charge: ৳${deliveryCharge}
+
 📝 Address:
 ${address}
 
 ================
 
-🛍 Products:
-${orderList}
+🛍 Product:
+${currentProduct.name}
 
 ================
 
@@ -914,6 +915,8 @@ let banners = [
 "img/cover2.jpg",
 "img/cover3.jpg",
 "img/cover4.jpg",
+"img/bannnnnar.jpg",
+"img/bannnar.jpg",
 "img/cover1.jpg"
 
 
@@ -936,87 +939,57 @@ banners[bannerIndex];
 }, 8000);
 
 
-
-
-// feee
-
-
-
-
-function cartCheckout(){
-
-let name =
-document.getElementById("cname").value;
-
-let phone =
-document.getElementById("cphone").value;
-
-let gmail =
-document.getElementById("cgmail").value;
-
-let division =
-document.getElementById("cdivision").value;
-
-let district =
-document.getElementById("cdistrict").value;
-
-let thana =
-document.getElementById("cthana").value;
-
-let village =
-document.getElementById("cvillage").value;
-
-let size =
-document.getElementById("csize").value;
-
-let color =
-document.getElementById("ccolor").value;
-
-let total =
-document.getElementById("total").innerText;
-
-let products = "";
-
-cart.forEach(item=>{
-
-products += item.name + " - ৳"
-+ item.price + "%0A";
-
-});
-
-let msg = `🛒 NEW ORDER
-
-👤 Name: ${name}
-
-📞 Phone: ${phone}
-
-📧 Gmail: ${gmail}
-
-🛍️ Products:
-${products}
-
-💰 Total: ৳${total}
-
-🏛️ Division: ${division}
-
-🏙️ District: ${district}
-
-📌 Thana: ${thana}
-
-🏡 Village: ${village}
-
-📏 Size: ${size}
-
-🎨 Color: ${color}
-
-✅ Order Confirmed`;
-
 window.open(
 "https://wa.me/8801605019908?text="
 + encodeURIComponent(msg)
 );
 
+// feee
+
+
+function cartCheckout() {
+
+let name = document.getElementById("cname").value;
+let phone = document.getElementById("cphone").value;
+let gmail = document.getElementById("cgmail").value;
+let division = document.getElementById("cdivision").value;
+let district = document.getElementById("cdistrict").value;
+let thana = document.getElementById("cthana").value;
+let village = document.getElementById("cvillage").value;
+let size = document.getElementById("csize").value;
+let color = document.getElementById("ccolor").value;
+
+let productText = "";
+let total = 0;
+
+cart.forEach(item => {
+productText += `\n${item.name} x${item.qty} = ৳${item.price * item.qty}`;
+total += item.price * item.qty;
+});
+
+let msg = `🛒 NEW ORDER
+
+👤 Name: ${name}
+📱 Phone: ${phone}
+📧 Gmail: ${gmail}
+
+🏠 Address:
+${division}, ${district}, ${thana}, ${village}
+
+📏 Size: ${size}
+🎨 Color: ${color}
+
+🛍 Products:${productText}
+
+💰 Total: ৳${total}
+`;
+
+let url = "https://wa.me/8801605019908?text=" + encodeURIComponent(msg);
+
+window.open(url, "_blank");
 }
+
+
 function closeCart(){
 document.getElementById("cart").style.transform="translateX(100%)";
 }
@@ -1076,4 +1049,6 @@ if(savedImage){
 document.getElementById("profileImage").src =
 savedImage;
 }
+
+
 
